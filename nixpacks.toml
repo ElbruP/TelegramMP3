@@ -1,2 +1,7 @@
+providers = ["python"]
+
 [phases.setup]
-nixPkgs = ["ffmpeg", "nodejs"]
+nixPkgs = ["python312", "ffmpeg", "nodejs"]
+
+[start]
+cmd = "python index.py"
