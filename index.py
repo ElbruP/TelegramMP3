@@ -16,6 +16,11 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     url = update.message.text
 
+    url = url.replace(
+        "m.youtube.com",
+        "youtube.com"
+    )
+
     if "youtube.com" not in url and "youtu.be" not in url:
 
         await update.message.reply_text(
@@ -28,49 +33,51 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "Завантажую аудіо..."
     )
 
-    output_file = "%(title)s.%(ext)s"
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'outtmpl': '%(title)s.%(ext)s',
+        'quiet': True,
+        'noplaylist': True,
+        'retries': 10,
+        'fragment_retries': 10,
 
-   ydl_opts = {
-    'format': 'bestaudio/best',
-    'outtmpl': '%(title)s.%(ext)s',
-    'quiet': True,
-    'noplaylist': True,
-    'retries': 10,
-    'fragment_retries': 10,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android']
+            }
+        },
 
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['android']
-        }
-    },
-
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-}
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
 
     try:
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
 
-            info = ydl.extract_info(url, download=True)
+            info = ydl.extract_info(
+                url,
+                download=True
+            )
 
-            title = info.get("title", "audio")
+            title = info.get(
+                "title",
+                "audio"
+            )
 
-            filename = f"{title}.mp3"
+            filename = ydl.prepare_filename(info)
 
-        for file in os.listdir():
-
-            if file.endswith(".mp3"):
-
-                filename = file
-
-                break
+            filename = (
+                os.path.splitext(filename)[0]
+                + ".mp3"
+            )
 
         await update.message.reply_audio(
-            audio=open(filename, "rb")
+            audio=open(filename, "rb"),
+            title=title
         )
 
         os.remove(filename)
@@ -80,7 +87,6 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"Помилка: {e}"
         )
-
 
 app = (
     ApplicationBuilder()
