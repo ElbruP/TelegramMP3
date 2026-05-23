@@ -30,13 +30,20 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     output_file = "%(title)s.%(ext)s"
 
-    ydl_opts = {
+   ydl_opts = {
     'format': 'bestaudio/best',
     'outtmpl': '%(title)s.%(ext)s',
     'quiet': True,
     'noplaylist': True,
     'retries': 10,
     'fragment_retries': 10,
+
+    'extractor_args': {
+        'youtube': {
+            'player_client': ['android']
+        }
+    },
+
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
         'preferredcodec': 'mp3',
